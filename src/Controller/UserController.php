@@ -1,7 +1,8 @@
 <?php
 
 namespace App\Controller;
-
+use Doctrine\DBAL\Exception\UniqueConstraintViolationException;
+use App\Repository\UserRepository;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\Routing\Annotation\Route;
@@ -11,50 +12,56 @@ use Doctrine\Persistence\ManagerRegistry;
 use Symfony\Component\HttpFoundation\Request;
 //Import the User entity class from the App\Entity namespace
 use App\Entity\User;
+use App\Enum\UserRole; // Import the UserRole enum
+
+
 
 #[Route('/api', name: 'api_')]
 class UserController extends AbstractController
 {
     /* Create user */
    #[Route('/register', name: 'create_user', methods:['post'])]
-public function create(ManagerRegistry $doctrine, Request $request): JsonResponse
+public function create(UserRepository $userRepository, Request $request): JsonResponse
 {
-   // Get the entity manager from Doctrine
-   $entityManager = $doctrine->getManager(); 
+    // This the body of the request
+        $requestData = [
+            'firstName' => $request->request->get("firstName"),
+            'lastName' => $request->request->get("lastName"),
+            'email' => $request->request->get("email"),
+            'password' => $request->request->get("password"),
+            'roles' => $request->request->get("roles"),
+        ];
 
-   // Create a new User object
-   $user = new User();
+       try{ 
+       // Create a new user from the request data and repository
+        $user = $userRepository->createUser( 
+                $requestData['firstName'],
+                $requestData['lastName'],
+                $requestData['email'],
+                $requestData['password'],
+                $requestData['roles']);
+       // Test if the user was created
+        if ($user) {
+            $data = [
+                'id' => $user->getId(),
+                'firstName' => $user->getFirstName(),
+                'lastName' => $user->getLastName(),
+                'email' => $user->getEmail(),
+                'password' => $user->getPassword(),  // Note: storing passwords in plain text is not recommended in production
+                'roles' => $user->getRoles(),
+            ];
+        // return the response
+            return $this->json($data,201);
+        } else {
+            return $this->json(['error' => 'Invalid role provided'], 400);
+        }}
+       
+       
+       catch(UniqueConstraintViolationException $exception){
+          return $this->json(['error' =>  'Email address is already in use.'],400);
+       }
+    }
 
-   // Set the first name of the user from the request
-   $user->setFirstName($request->request->get("firstName"));
-
-   // Set the last name of the user from the request
-   $user->setLastName($request->request->get("lastName"));
-
-   // Set the email of the user from the request
-   $user->setEmail($request->request->get("email"));
-
-   // Set the password of the user from the request
-   $user->setPassword($request->request->get("password"));
-
-   // Persist the user object to the database
-   $entityManager->persist($user);
-
-   // Commit changes to the database
-   $entityManager->flush();
-
-   // Prepare data to be returned in the JSON response
-   $data =  [
-        'id' => $user->getId(),
-        'firstName' => $user->getFirstName(),
-        'lastName' => $user->getLastName(),
-        'email' => $user->getEmail(),
-        'password' => $user->getPassword(),  // Note: storing passwords in plain text is not recommended in production
-    ];
-
-   // Return JSON response with user data
-   return $this->json($data);       
-}
 
 /* Get all users */
  #[Route('/users', name: 'get_all_user', methods:['get'])]
