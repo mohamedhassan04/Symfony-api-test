@@ -13,6 +13,7 @@
         "doctrine/orm": "^3.0",
         "friendsofsymfony/rest-bundle": "^3.6",
         "jms/serializer-bundle": "^5.4",
+        "lexik/jwt-authentication-bundle": "*",
         "ramsey/uuid-doctrine": "^2.0",
         "symfony/console": "6.4.*",
         "symfony/doctrine-bridge": "6.4.*",

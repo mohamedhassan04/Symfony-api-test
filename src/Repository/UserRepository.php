@@ -35,6 +35,7 @@ class UserRepository extends ServiceEntityRepository
         $user->setFirstName($firstName);
         $user->setLastName($lastName);
         $user->setEmail($email);
+        $user->setUsername($email);
         // Hash the password
         $hashedPassword = $this->passwordEncoder->hashPassword($user, $password);
         $user->setPassword($hashedPassword);
