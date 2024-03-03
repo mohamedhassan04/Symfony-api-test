@@ -5,8 +5,8 @@ namespace App\Enum;
 
 
 
-enum UserRole
+class UserRole
 {
-    case ROLE_USER;
-    case ROLE_ADMIN;
+    const ADMIN = "admin";
+    const USER = "user";
 }

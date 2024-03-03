@@ -31,16 +31,16 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
     #[ORM\Column(length: 255)]
     private ?string $password = null;
 
-    #[ORM\Column(length: 50)] // Adjust the length as needed
-    private ?UserRole $roles = UserRole::ROLE_USER;
+    #[ORM\Column(length: 50, nullable: true,type: 'json')] // Adjust the length as needed
+    private ?array $roles = [UserRole::ADMIN];
 
 
     public function getRoles(): array
     {
-        return [$this->roles];
+        return $this->roles;
     }
 
-    public function setRoles(UserRole $roles): static
+    public function setRoles(array $roles): static
     {
         $this->roles = $roles;
 

@@ -3,6 +3,7 @@
 namespace App\Repository;
 
 use App\Entity\User;
+use App\Enum\UserRole;
 use Doctrine\Bundle\DoctrineBundle\Repository\ServiceEntityRepository;
 use Doctrine\Persistence\ManagerRegistry;
 use Symfony\Component\PasswordHasher\Hasher\UserPasswordHasherInterface;
@@ -38,14 +39,17 @@ class UserRepository extends ServiceEntityRepository
         $hashedPassword = $this->passwordEncoder->hashPassword($user, $password);
         $user->setPassword($hashedPassword);
 
-        if (defined('App\Enum\UserRole::' . $roles)) {
-            $user->setRoles($roles);
-             
-            $entityManager->persist($user);
-            $entityManager->flush();
+        // Check if the provided role is valid
+    $validRoles = [UserRole::ADMIN, UserRole::USER];
 
-            return $user;
-        }
+    if (in_array($roles, $validRoles, true)) {
+        $user->setRoles([$roles]);
+
+        $entityManager->persist($user);
+        $entityManager->flush();
+
+        return $user;
+    }
 
         return null; // or throw an exception for invalid role
     }
